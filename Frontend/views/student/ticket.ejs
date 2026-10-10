@@ -1,0 +1,92 @@
+<%- include('../partials/header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="/student/my-events" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left me-1"></i> Back to My Events
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-sm fw-semibold">
+          <i class="bi bi-printer me-1"></i> Print / Save Ticket
+        </button>
+      </div>
+
+      <!-- Ticket Card Container -->
+      <div class="ticket-wrapper border shadow-sm rounded-4 overflow-hidden bg-white">
+        <!-- Header -->
+        <div class="ticket-header text-center p-4" style="background: linear-gradient(135deg, #1e3a8a, #0f172a); color: white;">
+          <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+            <i class="bi bi-mortarboard-fill text-warning fs-3"></i>
+            <h5 class="fw-bold mb-0 tracking-wide text-uppercase">Official Event Entry Pass</h5>
+          </div>
+          <p class="small text-white-50 mb-0">College Event Management System &bull; 2026</p>
+        </div>
+
+        <div class="p-4 p-md-5">
+          <!-- Event Info -->
+          <div class="text-center mb-4">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill fw-semibold mb-2">
+              <%= ticket.category %>
+            </span>
+            <h4 class="fw-bold text-dark mb-1"><%= ticket.event_title %></h4>
+            <p class="text-muted small mb-0"><%= ticket.organizer %></p>
+          </div>
+
+          <!-- QR Code Box -->
+          <div class="text-center my-4 py-3 bg-light rounded-4 border">
+            <img src="<%= qrDataUrl %>" alt="Ticket QR Code" class="img-fluid rounded mb-2 shadow-sm" style="max-width: 220px;">
+            <div class="font-monospace fw-bold text-dark fs-5 tracking-wider mb-1">
+              <%= ticket.ticket_code %>
+            </div>
+            <div class="badge <%= ticket.status === 'Attended' ? 'bg-success' : 'bg-primary' %> px-3 py-1">
+              Status: <%= ticket.status %>
+            </div>
+            <p class="text-muted small mt-2 mb-0" style="font-size: 0.75rem;">
+              Present this QR Code at the registration desk upon arrival.
+            </p>
+          </div>
+
+          <!-- Schedule & Venue Details -->
+          <div class="row g-2 text-start py-3 border-top border-bottom small mb-4">
+            <div class="col-6">
+              <span class="text-muted d-block">Date</span>
+              <strong><i class="bi bi-calendar-check me-1 text-primary"></i> <%= ticket.event_date %></strong>
+            </div>
+            <div class="col-6">
+              <span class="text-muted d-block">Time</span>
+              <strong><i class="bi bi-clock me-1 text-primary"></i> <%= ticket.event_time %></strong>
+            </div>
+            <div class="col-12 mt-2">
+              <span class="text-muted d-block">Venue</span>
+              <strong><i class="bi bi-geo-alt-fill me-1 text-danger"></i> <%= ticket.venue_name || 'Main Campus' %> (<%= ticket.venue_location || '' %>)</strong>
+            </div>
+          </div>
+
+          <!-- Student Credentials -->
+          <div class="p-3 bg-light rounded-3 small">
+            <div class="row gy-1">
+              <div class="col-sm-6">
+                <span class="text-muted">Attendee:</span> <strong><%= ticket.student_name %></strong>
+              </div>
+              <div class="col-sm-6">
+                <span class="text-muted">Roll No:</span> <strong><%= ticket.roll_no %></strong>
+              </div>
+              <div class="col-12">
+                <span class="text-muted">Department:</span> <strong><%= ticket.department %></strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-light p-3 text-center border-top text-muted small" style="font-size: 0.75rem;">
+          Verified Digital Pass &bull; Non-Transferable &bull; College Extracurricular Cell
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

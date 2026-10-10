@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid px-lg-4 py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">College Venues & Auditoriums</h2>
+      <p class="text-muted small mb-0">Manage on-campus locations and seating capacities.</p>
+    </div>
+    <button class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#addVenueModal">
+      <i class="bi bi-plus-circle me-1"></i> Add New Venue
+    </button>
+  </div>
+
+  <div class="row g-4">
+    <% if (venues && venues.length > 0) { %>
+      <% venues.forEach(v => { %>
+        <div class="col-md-6 col-lg-4">
+          <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
+                <i class="bi bi-geo-alt-fill fs-4"></i>
+              </div>
+              <span class="badge bg-secondary">
+                <i class="bi bi-people-fill me-1"></i> <%= v.capacity %> seats
+              </span>
+            </div>
+
+            <h5 class="fw-bold text-dark mb-1"><%= v.name %></h5>
+            <p class="small text-muted mb-3"><%= v.location %></p>
+
+            <div class="border-top pt-3 mt-auto d-flex justify-content-between align-items-center small text-muted">
+              <span>Hosted Events</span>
+              <span class="badge bg-light text-dark border"><%= v.event_count %> events</span>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="col-12 text-center py-5 text-muted">
+        No venues added yet.
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Add Venue Modal -->
+<div class="modal fade" id="addVenueModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <form action="/admin/venues" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-building-add text-primary me-2"></i>Add Campus Venue</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Venue Name *</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Science Block Seminar Hall" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Campus Location / Floor *</label>
+            <input type="text" name="location" class="form-control" placeholder="e.g. Block B, 3rd Floor, Room 302" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Seating Capacity *</label>
+            <input type="number" name="capacity" class="form-control" min="10" placeholder="e.g. 200" required>
+          </div>
+        </div>
+        <div class="modal-footer bg-light rounded-bottom-4">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-semibold">Save Venue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

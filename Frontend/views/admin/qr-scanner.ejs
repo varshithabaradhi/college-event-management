@@ -1,0 +1,224 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <span class="badge bg-warning text-dark px-3 py-1 fw-bold mb-1">
+            <i class="bi bi-qr-code-scan me-1"></i> Fast Check-in Tool
+          </span>
+          <h2 class="fw-bold mb-0">QR Attendance Scanner</h2>
+          <p class="text-muted small mb-0">Scan student digital ticket QR codes or enter ticket code to record live attendance.</p>
+        </div>
+        <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+      </div>
+
+      <!-- Main Scanner Card -->
+      <div class="card border-0 shadow rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-dark text-white p-4 text-center" style="background-color: #0f172a !important;">
+          <h4 class="fw-bold mb-1"><i class="bi bi-upc-scan text-warning me-2"></i>Live Venue Check-in</h4>
+          <p class="small text-secondary mb-0">Scan the QR code on the student's entry pass or type ticket code</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <!-- Verification Form -->
+          <form id="verifyForm" class="mb-4">
+            <label class="form-label fw-bold text-dark">Ticket Code / QR Data</label>
+            <div class="input-group input-group-lg mb-2">
+              <span class="input-group-text bg-light"><i class="bi bi-qr-code"></i></span>
+              <input type="text" id="ticketInput" class="form-control font-monospace" placeholder="e.g. TKT-HS26-90412" autofocus required>
+              <button class="btn btn-primary fw-bold px-4" type="submit" id="verifyBtn">
+                <i class="bi bi-check-circle me-1"></i> Verify & Check In
+              </button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-muted">Compatible with barcode scanners, webcams, and manual typing.</small>
+              <button type="button" id="toggleCameraBtn" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-camera-video me-1"></i> Toggle Camera Scanner
+              </button>
+            </div>
+          </form>
+
+          <!-- Camera Stream Box (hidden by default) -->
+          <div id="cameraContainer" class="d-none mb-4 p-3 bg-light rounded-4 text-center border">
+            <h6 class="fw-bold mb-2">Camera Live Scanner</h6>
+            <div id="reader" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+            <p class="small text-muted mt-2 mb-0">Point your camera towards the student's QR code.</p>
+          </div>
+
+          <!-- Quick Demo Shortcut Buttons -->
+          <div class="p-3 bg-light rounded-3 mb-4 small">
+            <div class="fw-bold text-secondary mb-2"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Test Sample Ticket Codes:</div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-sm btn-outline-primary font-monospace demo-code-btn" data-code="TKT-HS26-90412">
+                TKT-HS26-90412
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary font-monospace demo-code-btn" data-code="TKT-AI26-38194">
+                TKT-AI26-38194
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary font-monospace demo-code-btn" data-code="TKT-HS26-74921">
+                TKT-HS26-74921
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Result Card Container -->
+          <div id="resultContainer" class="d-none">
+            <!-- Dynamic result populated via JS -->
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- HTML5-QRCode Library for WebCam Scanning -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+  const verifyForm = document.getElementById('verifyForm');
+  const ticketInput = document.getElementById('ticketInput');
+  const resultContainer = document.getElementById('resultContainer');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const toggleCameraBtn = document.getElementById('toggleCameraBtn');
+  const cameraContainer = document.getElementById('cameraContainer');
+
+  let html5QrcodeScanner = null;
+  let isCameraActive = false;
+
+  // Handle Form Submit
+  verifyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = ticketInput.value.trim();
+    if (!code) return;
+    await processTicketCode(code);
+  });
+
+  // Handle Quick Demo Buttons
+  document.querySelectorAll('.demo-code-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ticketInput.value = btn.dataset.code;
+      processTicketCode(btn.dataset.code);
+    });
+  });
+
+  async function processTicketCode(code) {
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Verifying...';
+
+    try {
+      const response = await fetch('/admin/verify-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_code: code })
+      });
+      const data = await response.json();
+      displayResult(data);
+    } catch (err) {
+      console.error(err);
+      resultContainer.className = 'alert alert-danger shadow-sm rounded-4';
+      resultContainer.innerHTML = '<h6><i class="bi bi-exclamation-triangle-fill me-2"></i>Network Error</h6><p class="small mb-0">Failed to connect to verification server.</p>';
+      resultContainer.classList.remove('d-none');
+    } finally {
+      verifyBtn.disabled = false;
+      verifyBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Verify & Check In';
+      ticketInput.select();
+    }
+  }
+
+  function displayResult(data) {
+    resultContainer.classList.remove('d-none');
+
+    if (data.success && !data.alreadyAttended) {
+      // Success Check-in
+      resultContainer.className = 'card border-success border-2 shadow-sm rounded-4 p-4 bg-success bg-opacity-10';
+      resultContainer.innerHTML = `
+        <div class="d-flex align-items-center mb-3">
+          <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-check-lg fs-3"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-success mb-0">ATTENDANCE VERIFIED & RECORDED</h5>
+            <span class="small text-muted">${data.message}</span>
+          </div>
+        </div>
+        <div class="bg-white p-3 rounded-3 border">
+          <div class="row g-2 small">
+            <div class="col-sm-6"><strong>Student Name:</strong> ${data.ticket.student_name}</div>
+            <div class="col-sm-6"><strong>Roll Number:</strong> <span class="badge bg-light text-dark border">${data.ticket.roll_no}</span></div>
+            <div class="col-sm-6"><strong>Department:</strong> ${data.ticket.department}</div>
+            <div class="col-sm-6"><strong>Ticket Code:</strong> <code class="fw-bold">${data.ticket.ticket_code}</code></div>
+            <div class="col-12 border-top pt-2 mt-2"><strong>Event:</strong> ${data.ticket.event_title} (${data.ticket.event_date})</div>
+          </div>
+        </div>
+      `;
+    } else if (data.success && data.alreadyAttended) {
+      // Already Checked In Warning
+      resultContainer.className = 'card border-warning border-2 shadow-sm rounded-4 p-4 bg-warning bg-opacity-10';
+      resultContainer.innerHTML = `
+        <div class="d-flex align-items-center mb-3">
+          <div class="rounded-circle bg-warning text-dark p-2 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-exclamation-triangle fs-3"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-dark mb-0">ALREADY CHECKED IN PREVIOUSLY</h5>
+            <span class="small text-muted">${data.message}</span>
+          </div>
+        </div>
+        <div class="bg-white p-3 rounded-3 border">
+          <div class="row g-2 small">
+            <div class="col-sm-6"><strong>Student:</strong> ${data.ticket.student_name}</div>
+            <div class="col-sm-6"><strong>Roll No:</strong> ${data.ticket.roll_no}</div>
+            <div class="col-12"><strong>Event:</strong> ${data.ticket.event_title}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      // Error
+      resultContainer.className = 'card border-danger border-2 shadow-sm rounded-4 p-4 bg-danger bg-opacity-10';
+      resultContainer.innerHTML = `
+        <div class="d-flex align-items-center">
+          <div class="rounded-circle bg-danger text-white p-2 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-x-lg fs-3"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-danger mb-0">VERIFICATION FAILED</h5>
+            <span class="small text-muted">${data.message}</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Camera toggle logic
+  toggleCameraBtn.addEventListener('click', () => {
+    if (!isCameraActive) {
+      cameraContainer.classList.remove('d-none');
+      toggleCameraBtn.innerHTML = '<i class="bi bi-camera-video-off me-1"></i> Close Camera';
+      isCameraActive = true;
+
+      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+      html5QrcodeScanner.render((decodedText) => {
+        ticketInput.value = decodedText;
+        processTicketCode(decodedText);
+      }, (error) => {
+        // scan progress error
+      });
+    } else {
+      cameraContainer.classList.add('d-none');
+      toggleCameraBtn.innerHTML = '<i class="bi bi-camera-video me-1"></i> Toggle Camera Scanner';
+      isCameraActive = false;
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear();
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

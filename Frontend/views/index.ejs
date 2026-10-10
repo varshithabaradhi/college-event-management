@@ -1,0 +1,190 @@
+<%- include('partials/header') %>
+
+<!-- Hero Banner -->
+<section class="hero-gradient">
+  <div class="container">
+    <div class="row align-items-center gy-4">
+      <div class="col-lg-7 text-center text-lg-start">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">
+          <i class="bi bi-stars me-1"></i> Official Campus Portal 2026
+        </span>
+        <h1 class="display-4 fw-extrabold text-white mb-3" style="letter-spacing: -1px;">
+          College Event Management <span class="text-warning">System</span>
+        </h1>
+        <p class="lead text-light mb-4" style="opacity: 0.9;">
+          Discover hackathons, cultural fests, technical seminars, and sports meets. Register online, get your instant QR ticket, and claim verified certificates with ease.
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+          <a href="/events" class="btn btn-warning btn-lg fw-bold px-4 shadow">
+            <i class="bi bi-compass me-2"></i>Explore Events
+          </a>
+          <% if (!currentStudent && !currentAdmin) { %>
+            <a href="/auth/register" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-person-plus me-2"></i>Join as Student
+            </a>
+          <% } else if (currentStudent) { %>
+            <a href="/student/dashboard" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+            </a>
+          <% } else if (currentAdmin) { %>
+            <a href="/admin/dashboard" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-grid-1x2-fill me-2"></i>Admin Dashboard
+            </a>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="hero-stats-card">
+              <i class="bi bi-calendar-event fs-1 text-warning mb-2 d-block"></i>
+              <h2 class="fw-bold mb-0"><%= stats.totalEvents %>+</h2>
+              <span class="small opacity-75">Campus Events</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="hero-stats-card">
+              <i class="bi bi-people-fill fs-1 text-info mb-2 d-block"></i>
+              <h2 class="fw-bold mb-0"><%= stats.totalStudents %>+</h2>
+              <span class="small opacity-75">Registered Students</span>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="hero-stats-card bg-opacity-25 bg-primary">
+              <i class="bi bi-ticket-perforated-fill fs-1 text-white mb-2 d-block"></i>
+              <h3 class="fw-bold mb-0"><%= stats.totalRegistrations %> Registrations</h3>
+              <span class="small opacity-75">Processed & Verified Seamlessly</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Upcoming Featured Events -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h6 class="text-primary fw-bold text-uppercase tracking-wider mb-1">What's Happening</h6>
+        <h2 class="fw-bold mb-0">Upcoming Campus Highlights</h2>
+      </div>
+      <a href="/events" class="btn btn-outline-primary fw-semibold">
+        View All Events <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      <% if (featuredEvents && featuredEvents.length > 0) { %>
+        <% featuredEvents.forEach(event => { %>
+          <div class="col-md-6 col-lg-4">
+            <div class="card event-card h-100 position-relative shadow-sm">
+              <img src="<%= event.banner_image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80' %>" class="card-img-top event-card-img" alt="<%= event.title %>">
+              <span class="event-category-badge"><%= event.category %></span>
+
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 small text-muted mb-2">
+                  <span><i class="bi bi-calendar3 me-1 text-primary"></i><%= event.event_date %></span>
+                  <span>&bull;</span>
+                  <span><i class="bi bi-clock me-1 text-primary"></i><%= event.event_time %></span>
+                </div>
+
+                <h5 class="card-title fw-bold text-dark mb-2 line-clamp-2">
+                  <a href="/events/<%= event.id %>" class="text-decoration-none text-dark hover-primary"><%= event.title %></a>
+                </h5>
+
+                <p class="card-text text-muted small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                  <%= event.description %>
+                </p>
+
+                <div class="border-top pt-3 mt-auto">
+                  <div class="d-flex justify-content-between align-items-center mb-3 small">
+                    <span class="text-secondary">
+                      <i class="bi bi-geo-alt-fill text-danger me-1"></i><%= event.venue_name || 'Campus Venue' %>
+                    </span>
+                    <span class="badge bg-light text-dark border">
+                      <i class="bi bi-people me-1"></i><%= event.registered_count %> / <%= event.max_participants %>
+                    </span>
+                  </div>
+
+                  <a href="/events/<%= event.id %>" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>Details & Registration
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="col-12 text-center py-5">
+          <p class="text-muted">No upcoming events listed right now. Check back soon!</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- System Features & Workflow Section -->
+<section class="py-5 bg-white border-top border-bottom">
+  <div class="container">
+    <div class="text-center max-w-2xl mx-auto mb-5">
+      <h6 class="text-primary fw-bold text-uppercase">Platform Highlights</h6>
+      <h2 class="fw-bold">How The System Works</h2>
+      <p class="text-muted">A comprehensive, end-to-end digital event organization workflow for both students and administration.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border-0 shadow-sm text-center">
+          <div class="rounded-circle bg-primary bg-opacity-10 text-primary mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 68px; height: 68px; font-size: 1.8rem;">
+            <i class="bi bi-pencil-square"></i>
+          </div>
+          <h5 class="fw-bold mb-2">1. One-Click Registration</h5>
+          <p class="text-muted small mb-0">
+            Browse upcoming workshops, fests, or sports meets. Check capacity, venue seating, and sign up with student roll credentials in seconds.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border-0 shadow-sm text-center">
+          <div class="rounded-circle bg-warning bg-opacity-10 text-warning mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 68px; height: 68px; font-size: 1.8rem;">
+            <i class="bi bi-qr-code-scan"></i>
+          </div>
+          <h5 class="fw-bold mb-2">2. QR Attendance Pass</h5>
+          <p class="text-muted small mb-0">
+            Receive a personalized digital entry pass with an encrypted QR code. Admins scan your ticket at the venue gate for instant check-in.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border-0 shadow-sm text-center">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 68px; height: 68px; font-size: 1.8rem;">
+            <i class="bi bi-award-fill"></i>
+          </div>
+          <h5 class="fw-bold mb-2">3. Verified Certificates</h5>
+          <p class="text-muted small mb-0">
+            Attended participants can immediately download high-resolution, signed PDF certificates of participation with unique certificate IDs.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ready to Start CTA -->
+<section class="py-5 bg-light">
+  <div class="container text-center py-3">
+    <h3 class="fw-bold mb-2">Ready to participate or manage college events?</h3>
+    <p class="text-muted mb-4">Log in to your account or register today to stay connected with campus life.</p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="/auth/login" class="btn btn-outline-primary px-4 fw-semibold">Sign In to Account</a>
+      <a href="/events" class="btn btn-primary px-4 fw-semibold">Browse All Events</a>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>
